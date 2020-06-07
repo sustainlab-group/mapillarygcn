@@ -15,13 +15,14 @@ To install requirements:
 pip install -r requirements.txt
 ```
 
-First, download [data.csv](). 
+First, download [data.csv](https://drive.google.com/file/d/1HgzZA55fQwUmSpmMJHXJwKsoUHZ4Zzaw/view?usp=sharing) (1.46 GB). 
 There is a row for every image, where:
 - `key`: refers to the unique ID of an image
 - `unique_cluster`: is the unique ID of the cluster to which the image belongs (i.e. images in the same cluster will have the same `unique_cluster` value)
 - `ilon`, `ilat`: represent the longitude, latitude of the image, respectively 
 - `features`: represent the object indexes detected in this image (more info on how these are generated below)
-- `features_name`: represent the class namese of the objects detected
+- `features_name`: represent the class names of the objects detected 
+- `confidence`: confidence values of the detections 
 -  `pov`, `pov_label`: represent the poverty indicator value and the binary class label (0 for less than median, 1 for greater than or equal to median), respectively 
 - `pop`, `pop_label`: represent the population density indicator value and the binary class label, respectively
 - `bmi`, `bmi_label`: represent the women's body-mass-index (BMI) indicator value and the binary class label, respectively
@@ -30,7 +31,7 @@ Each Mapillary image is identifiable using its `key` and `unique_cluster`.
 To download the high-resolution images, run the script: `python download_images.py`. 
 
 **Object Counts**
-We fed the high-res images directly into the [Seamless Scene Segmentation model](https://github.com/mapillary/seamseg) to get their segmentations and object detections. The indexes and class names of the detections per image are conveniently available in the csv as `features` and `features_name`. 
+We fed the high-res images directly into the [Seamless Scene Segmentation model](https://github.com/mapillary/seamseg) to get their segmentations and object detections. The class indexes, class names, and confidences of the detections per image are conveniently available in the csv as `features`, `features_name`, and `confidence`. 
 
 **Image Features**
 To get image features, we resized the images to 224x224 and then trained CNNs on the classification task. To download the image features for use in the GCN, download them here: 
@@ -86,23 +87,28 @@ Our model achieves the following performance on :
 
 ### Livelihood Indicator Classification
 
-| Model name            | Pov Accuracy    | Pop Accuracy   | BMI Accuracy   |
-| --------------------- |---------------- | -------------- | -------------- |
-| Image-wise Learning   |     85%         |      95%       |       x%       |
-| Cluster-wise Learning |     85%         |      95%       |       x%       |
-| GCN (V: Obj Counts)   |     85%         |      95%       |       x%       |
-| GCN (V: Img Feats)    |     85%         |      95%       |       x%       |
-| GCN (V: Both)         |     85%         |      95%       |       x%       |
+| Model name              | Pov Accuracy    | Pop Accuracy   | BMI Accuracy   |
+| ----------------------- |---------------- | -------------- | -------------- |
+| Baseline (Random)       |     85%         |      95%       |       x%       |
+| Baseline (Avg Neighbors)|     85%         |      95%       |       x%       |
+| Image-wise Learning     |     85%         |      95%       |       x%       |
+| Cluster-wise Learning   |     85%         |      95%       |       x%       |
+| GCN (V: Obj Counts)     |     85%         |      95%       |       x%       |
+| GCN (V: Img Feats)      |     85%         |      95%       |       x%       |
+| GCN (V: Both)           |     85%         |      95%       |       x%       |
+| GCN (V: Both, A: Random)|     85%         |      95%       |       x%       |
 
 ### Livelihood Indicator Regression
 
-| Model name            | Pov r^2        | Pop r^2         | BMI r^2        |
-| --------------------- |---------------- | -------------- | -------------- |
-| Image-wise Learning   |     85%         |      95%       |       x%       |
-| Cluster-wise Learning |     85%         |      95%       |       x%       |
-| GCN (V: Obj Counts)   |     85%         |      95%       |       x%       |
-| GCN (V: Img Feats)    |     85%         |      95%       |       x%       |
-| GCN (V: Both)         |     85%         |      95%       |       x%       |
+| Model name              | Pov r^2        | Pop r^2         | BMI r^2        |
+| ----------------------- |---------------- | -------------- | -------------- |
+| Baseline (Avg Neighbors)|     85%         |      95%       |       x%       |
+| Image-wise Learning     |     85%         |      95%       |       x%       |
+| Cluster-wise Learning   |     85%         |      95%       |       x%       |
+| GCN (V: Obj Counts)     |     85%         |      95%       |       x%       |
+| GCN (V: Img Feats)      |     85%         |      95%       |       x%       |
+| GCN (V: Both)           |     85%         |      95%       |       x%       |
+| GCN (V: Both, A: Random)|     85%         |      95%       |       x%       |
 
 
 ## Interpretability
