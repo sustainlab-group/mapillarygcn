@@ -39,7 +39,7 @@ If the script finishes running properly, the `data.csv` should now have a new co
 We fed the high-res images directly into the [Seamless Scene Segmentation model](https://github.com/mapillary/seamseg) to get their segmentations and object detections. The class indexes, class names, and confidences of the detections per image are conveniently available in the csv as `features`, `features_name`, and `confidence`. 
 
 **Image Features**
-To get image features, we resized the images to 224x224 and then trained CNNs on the classification task (ResNet34 with pretrained ImageNet weights; trained for 10 epochs with batch size 256 and lr 1e-3). To download the image features for use in the GCN, download [pretrained_image_features.csv](https://drive.google.com/file/d/1tYcegp9zYwFkV5Xgtgfq1-ytOGMTDt-Z/view?usp=sharing) (zip file 2.44 GB).
+To get image features, we resized the images to 224x224 and then trained CNNs on the classification task (ResNet34 with pretrained ImageNet weights; trained for 10 epochs with batch size 256 and lr 1e-3). To download the image features for use in the GCN, download [pretrained_image_features.zip](https://drive.google.com/file/d/1tYcegp9zYwFkV5Xgtgfq1-ytOGMTDt-Z/view?usp=sharing) (zip file 2.44 GB).
 
 **Clusters**
 The clusters we used for training and validation are specified by `train_clusters_ia.txt` and `val_clusters_ia.txt`, respectively.
@@ -57,6 +57,10 @@ Note: We use `imagewise_classify.py` to generate the pretrained image features.
 
 **Cluster-wise Learning**
 To train the cluster-wise learning model from the paper, run this command:
+```train
+python .py --model=resnet34 --label=pov_label --lr=1e-3 --batch_size=256 --pretrained
+python .py --model=resnet34 --label=pov --lr=1e-4 --batch_size=256 --pretrained
+```
 
 **Cluster-wise GCN Learning**
 To train the cluster-wise GCN learning model from the paper, seee the example commands below. You can specify flags for how you want to represent the nodes (V) or edges (A).
@@ -81,11 +85,11 @@ To run the baselines (which required no training):
 
 ## Pre-trained Models
 
-You can download the models that were pretrained on classifying each indicator below. Each were trained on the images of the clusters in the training set using a ResNet34 model with learning rate 1e-3 for 10 epochs.
+You can download the model weights for classifying and regressing on each indicator below. Each were trained on the images of the clusters in the training set using a ResNet34 model with learning rate 1e-3 for 10 epochs.
 
-- [Poverty Model](https://drive.google.com/mymodel.pth) 
-- [Population Model](https://drive.google.com/mymodel.pth) 
-- [Women's BMI Model](https://drive.google.com/mymodel.pth) 
+- Poverty: [Classification Model](https://drive.google.com/file/d/11ftmp0hHsnZHpRDkqAEdaMWC-WhDn-LM/view?usp=sharing), [Regression Model](https://drive.google.com/file/d/1c9Lyxhp3QZZsdd2GlcSDFNFv82TCLH0f/view?usp=sharing) 
+- Population Density: [Classification Model](https://drive.google.com/file/d/1uDP1SC_mO2Sl7rSEUYchcoKTaSHQrBTz/view?usp=sharing), [Regression Model](https://drive.google.com/file/d/1lGH5GvxvDtsyHVO5vZaR8iESHzczqPC8/view?usp=sharing) 
+- Women's BMI: [Classification Model](https://drive.google.com/file/d/1XR5wpy-OV3LbAdh74LXnqvGhJVcR-ev9/view?usp=sharing), [Regression Model](https://drive.google.com/mymodel.pth) 
 
 
 ## Results
@@ -96,26 +100,26 @@ Our model achieves the following performance on :
 
 | Model name              | Pov Accuracy    | Pop Accuracy   | BMI Accuracy   |
 | ----------------------- |---------------- | -------------- | -------------- |
-| Baseline (Random)       |     85%         |      95%       |       x%       |
-| Baseline (Avg Neighbors)|     85%         |      95%       |       x%       |
-| Image-wise Learning     |     85%         |      95%       |       x%       |
-| Cluster-wise Learning   |     85%         |      95%       |       x%       |
-| GCN (V: Obj Counts)     |     85%         |      95%       |       x%       |
-| GCN (V: Img Feats)      |     85%         |      95%       |       x%       |
-| GCN (V: Both)           |     85%         |      95%       |       x%       |
-| GCN (V: Both, A: Random)|     85%         |      95%       |       x%       |
+| Baseline (Random)       |     xx%         |      xx%       |       xx%      |
+| Baseline (Avg Neighbors)|     xx%         |      xx%       |       xx%      |
+| Image-wise Learning     |     74.34%      |      93.50%    |       85.28%   |
+| Cluster-wise Learning   |     75.77%      |      91.71%    |       83.63%   |
+| GCN (V: Obj Counts)     |     72.05%      |      86.63%    |       80.13%   |
+| GCN (V: Img Feats)      |     **81.06%**      |      **94.71%**    |       89.42%   |
+| GCN (V: Both)           |     80.91%      |      94.42%    |       **89.56%**   |
+#| GCN (V: Both, A: Random)|     xx%         |      xx%       |       xx%      |
 
 ### Livelihood Indicator Regression
 
 | Model name              | Pov r^2        | Pop r^2         | BMI r^2        |
 | ----------------------- |---------------- | -------------- | -------------- |
-| Baseline (Avg Neighbors)|     85%         |      95%       |       x%       |
-| Image-wise Learning     |     85%         |      95%       |       x%       |
-| Cluster-wise Learning   |     85%         |      95%       |       x%       |
-| GCN (V: Obj Counts)     |     85%         |      95%       |       x%       |
-| GCN (V: Img Feats)      |     85%         |      95%       |       x%       |
-| GCN (V: Both)           |     85%         |      95%       |       x%       |
-| GCN (V: Both, A: Random)|     85%         |      95%       |       x%       |
+| Baseline (Avg Neighbors)|     0.08        |      0.54      |       0.39     |
+| Image-wise Learning     |     0.51        |      0.85      |       0.52     |
+| Cluster-wise Learning   |     0.52        |      0.81      |       0.54     |
+| GCN (V: Obj Counts)     |     0.39        |      0.86      |       0.38     |
+| GCN (V: Img Feats)      |     **0.54**        |      0.82      |       **0.57**     |
+| GCN (V: Both)           |     0.53        |      **0.89**      |       0.56     |
+#| GCN (V: Both, A: Random)|     xx         |      xx       |       x       |
 
 
 ## Interpretability
