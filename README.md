@@ -28,7 +28,11 @@ There is a row for every image, where:
 - `bmi`, `bmi_label`: represent the women's body-mass-index (BMI) indicator value and the binary class label, respectively
 
 Each Mapillary image is identifiable using its `key` and `unique_cluster`. 
-To download the high-resolution images, run the script: `python download_images.py`. 
+To download the high-resolution images, run the script: 
+```download
+python download_images.py
+```
+If the script finishes running properly, the `data.csv` should now have a new column called `img_path` that provides the locations of the images (saved to directory `data/img_highres` by default).
 
 **Object Counts**
 We fed the high-res images directly into the [Seamless Scene Segmentation model](https://github.com/mapillary/seamseg) to get their segmentations and object detections. The class indexes, class names, and confidences of the detections per image are conveniently available in the csv as `features`, `features_name`, and `confidence`. 
