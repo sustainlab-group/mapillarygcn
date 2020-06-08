@@ -27,6 +27,7 @@ There is a row for every image, where:
 - `pop`, `pop_label`: represent the population density indicator value and the binary class label, respectively
 - `bmi`, `bmi_label`: represent the women's body-mass-index (BMI) indicator value and the binary class label, respectively
 
+**Images**
 Each Mapillary image is identifiable using its `key` and `unique_cluster`. 
 To download the high-resolution images, run the script: 
 ```download
@@ -38,7 +39,7 @@ If the script finishes running properly, the `data.csv` should now have a new co
 We fed the high-res images directly into the [Seamless Scene Segmentation model](https://github.com/mapillary/seamseg) to get their segmentations and object detections. The class indexes, class names, and confidences of the detections per image are conveniently available in the csv as `features`, `features_name`, and `confidence`. 
 
 **Image Features**
-To get image features, we resized the images to 224x224 and then trained CNNs on the classification task. To download the image features for use in the GCN, download them here: 
+To get image features, we resized the images to 224x224 and then trained CNNs on the classification task (ResNet34 with pretrained ImageNet weights; trained for 10 epochs with batch size 256 and lr 1e-3). To download the image features for use in the GCN, download [pretrained_image_features.csv](https://drive.google.com/file/d/1tYcegp9zYwFkV5Xgtgfq1-ytOGMTDt-Z/view?usp=sharing) (zip file 2.44 GB).
 
 **Clusters**
 The clusters we used for training and validation are specified by `train_clusters_ia.txt` and `val_clusters_ia.txt`, respectively.
@@ -46,11 +47,13 @@ The clusters we used for training and validation are specified by `train_cluster
 ## Training
 
 **Image-wise Learning**
-Once you have resized the images and specified their location in a column called `img_path_224x224` in `data.csv`, you can train a ResNet34 model to perform classification or regression. Here are the example commands:
+Once you have resized the images and specified their location in a column called `img_path_224x224` in `data.csv`, you can train a ResNet34 model to perform classification or regression. Here are the commands:
 
 ```train
-python train.py --input-data <path_to_data> --alpha 10 --beta 20
+python imagewise_classify.py --model=resnet34 --label=pov_label --lr=1e-3 --batch_size=256 --pretrained
+python imagewise_regress.py --model=resnet34 --label=pov --lr=1e-4 --batch_size=256 --pretrained
 ```
+Note: We use `imagewise_classify.py` to generate the pretrained image features.
 
 **Cluster-wise Learning**
 To train the cluster-wise learning model from the paper, run this command:
