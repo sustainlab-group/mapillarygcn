@@ -24,6 +24,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--model', default='resnet34', choices=['resnet18', 'resnet34'], help='ResNet Version')
 parser.add_argument('--save_name', default='models/reg_pov', help='Base dir name to keep saved model and log')
 parser.add_argument('--label', default='pov', choices=['pov', 'pop', 'bmi'], help='Label used for training')
+parser.add_argument('--lr', default=1e-3, help='Training learning rate')
+parser.add_argument('--batch_size', default=256, help='Training batch size')
+parser.add_argument('--num_epochs', default=100, help='Training number of epochs')
 parser.add_argument('--pretrained', action='store_true', help='Use pretrained Imagenet weights')
 args = parser.parse_args()
 
@@ -35,7 +38,7 @@ writer = SummaryWriter(args.save_name)
 
 class ImgDataset(Dataset):
     def __init__(self, df, device):
-        self.img_paths = df['img_224x224'].to_numpy()
+        self.img_paths = df['img_path_224x224'].to_numpy()
         self.targets = df[args.label].to_numpy()
         self.device = device
 
@@ -109,8 +112,6 @@ def test(model, device, test_loader, criterion, epoch):
 
 
 def main():
-    batch_size = 256
-    num_epochs = 150
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     print('Getting the clusters')
@@ -129,16 +130,16 @@ def main():
     val_df = val_df.sample(frac=1).reset_index(drop=True)
 
     train_dataset = ImgDataset(train_df, device)
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, num_workers=2)
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, num_workers=2)
     val_dataset = ImgDataset(val_df, device)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, num_workers=2)
+    val_loader = DataLoader(val_dataset, batch_size=args.batch_size, num_workers=2)
 
     print('Starting training')
     model = create_model().to(device)
     criterion = torch.nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-6)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-6)
     best_r2 = 0.
-    for epoch in range(1, num_epochs+1):
+    for epoch in range(1, args.num_epochs+1):
         train(model, device, train_loader, optimizer, criterion, epoch)
         r2, y_true, y_pred = test(model, device, val_loader, criterion, epoch)
         if r2 >= best_r2:
