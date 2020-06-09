@@ -91,8 +91,8 @@ You can download the model weights for classifying and regressing on each indica
 After downloading the pre-trained model weights, you can train the cluster-wise GCN learning model from the paper by looking at the example commands below. You can specify flags for how you want to represent the nodes (V) or edges (A). You can set V to 'feats' to only represent images by their pretrained features, 'obj' for their object counts, and 'both' for the combination of the two. You can also set A to 'inv' for edges that represent the normalized inverse distance between images in a cluster or 'none' for random edges.
 
 ```train
-python run_gcn.py --target pov_label --img_csv ./data.csv --train_val_dir . --A_type inv --V_type both --lr 1e-6 --batch_size 256 --num_iter 3000
-python run_gcn.py --target pov --img_csv ./data.csv --train_val_dir . --A_type inv --V_type both --lr 1e-6 --batch_size 256 --num_iter 3000
+python run_gcn.py --target pov_label --img_csv ./data.csv --train_val_dir . --pretrained_image_file pov_classify --A_type inv --V_type both --lr 1e-6 --batch_size 256 --num_iter 3000
+python run_gcn.py --target pov --img_csv ./data.csv --train_val_dir . --pretrained_image_file pov_regress --A_type inv --V_type both --lr 1e-6 --batch_size 256 --num_iter 3000
 ```
 
 ## Results
