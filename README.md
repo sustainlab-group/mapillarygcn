@@ -62,9 +62,6 @@ python .py --model=resnet34 --label=pov_label --lr=1e-3 --batch_size=256 --pretr
 python .py --model=resnet34 --label=pov --lr=1e-4 --batch_size=256 --pretrained
 ```
 
-**Cluster-wise GCN Learning**
-To train the cluster-wise GCN learning model from the paper, seee the example commands below. You can specify flags for how you want to represent the nodes (V) or edges (A).
-
 > 📋Describe how to train the models, with example commands on how to train the models in your paper, including the full training procedure and appropriate hyperparameters.
 
 ## Evaluation
@@ -76,8 +73,6 @@ python eval.py --model-file mymodel.pth --benchmark imagenet
 ```
 
 To evaluate the cluster-wise learning model:
-
-To evaluate the cluster-wise GCN learning model:
 
 To run the baselines (which required no training):
 
@@ -91,6 +86,14 @@ You can download the model weights for classifying and regressing on each indica
 - Population Density: [Classification Model](https://drive.google.com/file/d/1uDP1SC_mO2Sl7rSEUYchcoKTaSHQrBTz/view?usp=sharing), [Regression Model](https://drive.google.com/file/d/1lGH5GvxvDtsyHVO5vZaR8iESHzczqPC8/view?usp=sharing) 
 - Women's BMI: [Classification Model](https://drive.google.com/file/d/1XR5wpy-OV3LbAdh74LXnqvGhJVcR-ev9/view?usp=sharing), [Regression Model](https://drive.google.com/mymodel.pth) 
 
+## GCN Train + Evaluation
+
+After downloading the pre-trained model weights, you can train the cluster-wise GCN learning model from the paper by looking at the example commands below. You can specify flags for how you want to represent the nodes (V) or edges (A). You can set V to 'feats' to only represent images by their pretrained features, 'obj' for their object counts, and 'both' for the combination of the two. You can also set A to 'inv' for edges that represent the normalized inverse distance between images in a cluster or 'none' for random edges.
+
+```train
+python run_gcn.py --target pov_label --img_csv ./data.csv --train_val_dir . --A_type inv --V_type both --lr 1e-5 --batch_size 256 --num_iter 3000
+python run_gcn.py --target pov --img_csv ./data.csv --train_val_dir . --A_type inv --V_type both --lr 1e-5 --batch_size 256 --num_iter 3000
+```
 
 ## Results
 
@@ -124,9 +127,9 @@ Our model achieves the following performance on :
 
 ## Interpretability
 
-We procduced our feature importance with x and tree visualizations with y.
+We produced our feature importance with x and tree visualizations with y.
 
 
 ## Contributing
 
-> 📋Pick a licence and describe how to contribute to your code repository. 
+> 📋Pick a license and describe how to contribute to your code repository. 
