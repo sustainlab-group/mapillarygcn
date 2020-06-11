@@ -131,10 +131,11 @@ def main():
     val_dataset = ImgDataset(val_df, device)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, num_workers=2)
 
-    print('Starting training')
     model = create_model().to(device)
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-6)
+
+    print('Starting training')
     best_acc = 0.
     for epoch in range(1, args.num_epochs+1):
         train(model, device, train_loader, optimizer, criterion, epoch)

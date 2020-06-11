@@ -28,6 +28,7 @@ parser.add_argument('--lr', default=1e-3, help='Training learning rate')
 parser.add_argument('--batch_size', default=256, help='Training batch size')
 parser.add_argument('--num_epochs', default=100, help='Training number of epochs')
 parser.add_argument('--pretrained', action='store_true', help='Use pretrained Imagenet weights')
+parser.add_argument('--eval_mode', action='store_true', help='Only evaluates')
 args = parser.parse_args()
 
 if not os.path.exists(args.save_name):
@@ -134,21 +135,26 @@ def main():
     val_dataset = ImgDataset(val_df, device)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, num_workers=2)
 
-    print('Starting training')
     model = create_model().to(device)
     criterion = torch.nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-6)
-    best_r2 = 0.
-    for epoch in range(1, args.num_epochs+1):
-        train(model, device, train_loader, optimizer, criterion, epoch)
-        r2, y_true, y_pred = test(model, device, val_loader, criterion, epoch)
-        if r2 >= best_r2:
-            best_r2 = r2
-            torch.save(model.state_dict(), args.save_name + "/model")
-            logging.info("\nSaved model with R2: {:.4f}\n".format(best_r2))
-    
-    logging.info("\nBest R2: {:.4f}\n".format(best_r2))
-    print("\nBest R2: {:.4f}\n".format(best_r2))
+
+    if not args.eval_mode:
+        print('Starting training')
+        best_r2 = 0.
+        for epoch in range(1, args.num_epochs+1):
+            train(model, device, train_loader, optimizer, criterion, epoch)
+            r2, y_true, y_pred = test(model, device, val_loader, criterion, epoch)
+            if r2 >= best_r2:
+                best_r2 = r2
+                torch.save(model.state_dict(), args.save_name + "/model")
+                logging.info("\nSaved model with R2: {:.4f}\n".format(best_r2))
+        
+        logging.info("\nBest R2: {:.4f}\n".format(best_r2))
+        print("\nBest R2: {:.4f}\n".format(best_r2))
+    else:
+        r2, y_true, y_pred = test(model, device, val_loader, criterion, 1)
+        print("\nVal R2: {:.4f}\n".format(best_r2))
 
     # Saves the predictions
     df = pd.DataFrame({'unique_cluster': val_clusters,

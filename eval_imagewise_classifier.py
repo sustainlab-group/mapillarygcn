@@ -18,10 +18,10 @@ from tqdm import tqdm
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--log_file', type=str, default='results_bmi_label_img.log', help='Log file')
-parser.add_argument('--model_weights', type=str, default='model_bmi', help='Where pretrained model is at')
-parser.add_argument('--resnet_ver', type=str, default='resnet34', help='Which ResNet architecture to use')
-parser.add_argument('--label', type=str, default='bmi_label', help='Label')
+parser.add_argument('--log_file', type=str, default='results_pov_label_img.log', help='Log file')
+parser.add_argument('--model_weights', type=str, default='models/pov_classify', help='Where pretrained model is located')
+parser.add_argument('--resnet_ver', type=str, default='resnet34', help='Which ResNet architecture was used')
+parser.add_argument('--label', type=str, default='pov_label', help='Label')
 parser.add_argument('--batch_size', type=int, default=64)
 args = parser.parse_args()
 
