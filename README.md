@@ -20,6 +20,7 @@ There is a row for every image, where:
 - `key`: refers to the unique ID of an image
 - `unique_cluster`: is the unique ID of the cluster to which the image belongs (i.e. images in the same cluster will have the same `unique_cluster` value)
 - `ilon`, `ilat`: represent the longitude, latitude of the image, respectively 
+- `lon`, `lat`: represent the longitude, latitude of the cluster
 - `features`: represent the object indexes detected in this image (more info on how these are generated below)
 - `features_name`: represent the class names of the objects detected 
 - `confidence`: confidence values of the detections 
@@ -50,33 +51,42 @@ The clusters we used for training and validation are specified by `train_cluster
 Once you have resized the images and specified their location in a column called `img_path_224x224` in `data.csv`, you can train a ResNet34 model to perform classification or regression. Here are the commands:
 
 ```train
-python imagewise_classify.py --model=resnet34 --label=pov_label --lr=1e-3 --batch_size=256 --pretrained
-python imagewise_regress.py --model=resnet34 --label=pov --lr=1e-4 --batch_size=256 --pretrained
+python train_imagewise_classifier.py --model=resnet34 --label=pov_label --lr=1e-3 --batch_size=256 --pretrained
+python imagewise_regressor.py --model=resnet34 --label=pov --lr=1e-4 --batch_size=256 --pretrained
 ```
-Note: We use `imagewise_classify.py` to generate the pretrained image features.
+Note: We use `train_imagewise_classifier.py` to generate the pretrained image features.
 
 **Cluster-wise Learning**
 To train the cluster-wise learning model from the paper, run this command:
 ```train
-python .py --model=resnet34 --label=pov_label --lr=1e-3 --batch_size=256 --pretrained
-python .py --model=resnet34 --label=pov --lr=1e-4 --batch_size=256 --pretrained
+python clusterwise_classifier.py --label=pov_label --log_file=pov_label_results.log
+python clusterwise_regressor.py --label=pov --log_file=pov_results.log
 ```
-
-> 📋Describe how to train the models, with example commands on how to train the models in your paper, including the full training procedure and appropriate hyperparameters.
 
 ## Evaluation
 
 To evaluate the image-wise learning model:
 
 ```eval
-python eval.py --model-file mymodel.pth --benchmark imagenet
+python eval_imagewise_classifier.py --model_weights=models/pov_classify --label=pov_label
+python imagewise_regressor.py --save_name=models/reg_pov --label=pov --eval_mode 
 ```
 
 To evaluate the cluster-wise learning model:
+```eval
+python clusterwise_classifier.py --label=pov_label --log_file=pov_label_results.log \
+    --train_saved_feats=features/trainpov_label_feats.npy --train_saved_labels=features/trainpov_label_labels.npy \
+    --val_saved_feats=features/valpov_label_feats.npy --val_saved_labels=features/valpov_label_labels.npy
+
+python clusterwise_regressor.py --label=pov --log_file=pov_results.log \
+    --train_saved_feats=features/trainpov_feats.npy --train_saved_labels=features/trainpov_labels.npy \
+    --val_saved_feats=features/valpov_feats.npy --val_saved_labels=features/valpov_labels.npy
+```
 
 To run the baselines (which required no training):
-
-> 📋Describe how to evaluate the trained models on benchmarks reported in the paper, give commands that produce the results (section below).
+```baseline
+python baseline_nearestneighbor.py --baseline=random --label=pov_label
+```
 
 ## Pre-trained Models
 
@@ -84,7 +94,7 @@ You can download the model weights for classifying and regressing on each indica
 
 - Poverty: [Classification Model](https://drive.google.com/file/d/11ftmp0hHsnZHpRDkqAEdaMWC-WhDn-LM/view?usp=sharing), [Regression Model](https://drive.google.com/file/d/1c9Lyxhp3QZZsdd2GlcSDFNFv82TCLH0f/view?usp=sharing) 
 - Population Density: [Classification Model](https://drive.google.com/file/d/1uDP1SC_mO2Sl7rSEUYchcoKTaSHQrBTz/view?usp=sharing), [Regression Model](https://drive.google.com/file/d/1lGH5GvxvDtsyHVO5vZaR8iESHzczqPC8/view?usp=sharing) 
-- Women's BMI: [Classification Model](https://drive.google.com/file/d/1XR5wpy-OV3LbAdh74LXnqvGhJVcR-ev9/view?usp=sharing), [Regression Model](https://drive.google.com/mymodel.pth) 
+- Women's BMI: [Classification Model](https://drive.google.com/file/d/1XR5wpy-OV3LbAdh74LXnqvGhJVcR-ev9/view?usp=sharing), [Regression Model](https://drive.google.com/file/d/1hlQrSA40uGdPoj7ddMbszNdy4CVaX1VB/view?usp=sharing) 
 
 ## GCN Train + Evaluation
 
@@ -103,33 +113,30 @@ Our model achieves the following performance on :
 
 | Model name              | Pov Accuracy    | Pop Accuracy   | BMI Accuracy   |
 | ----------------------- |---------------- | -------------- | -------------- |
-| Baseline (Random)       |     xx%         |      xx%       |       xx%      |
-| Baseline (Avg Neighbors)|     xx%         |      xx%       |       xx%      |
+| Baseline (Random)       |     50.70%      |      50.11%    |       51.47%   |
+| Baseline (Avg Neighbors)|     63.57%      |      69.06%    |       66.17%   |
 | Image-wise Learning     |     74.34%      |      93.50%    |       85.28%   |
 | Cluster-wise Learning   |     75.77%      |      91.71%    |       83.63%   |
 | GCN (V: Obj Counts)     |     72.05%      |      86.63%    |       80.13%   |
-| GCN (V: Img Feats)      |     **81.06%**      |      **94.71%**    |       89.42%   |
-| GCN (V: Both)           |     80.91%      |      94.42%    |       **89.56%**   |
-#| GCN (V: Both, A: Random)|     xx%         |      xx%       |       xx%      |
+| GCN (V: Img Feats)      |     **81.06%**  |    **94.71%**  |       89.42%   |
+| GCN (V: Both)           |     80.91%      |      94.42%    |   **89.56%**   |
 
 ### Livelihood Indicator Regression
 
 | Model name              | Pov r^2        | Pop r^2         | BMI r^2        |
 | ----------------------- |---------------- | -------------- | -------------- |
-| Baseline (Avg Neighbors)|     0.08        |      0.54      |       0.39     |
+| Baseline (Avg Neighbors)|     0.16        |      0.66      |       0.25     |
 | Image-wise Learning     |     0.51        |      0.85      |       0.52     |
 | Cluster-wise Learning   |     0.52        |      0.81      |       0.54     |
 | GCN (V: Obj Counts)     |     0.39        |      0.86      |       0.38     |
-| GCN (V: Img Feats)      |     **0.54**        |      0.82      |       **0.57**     |
-| GCN (V: Both)           |     0.53        |      **0.89**      |       0.56     |
-#| GCN (V: Both, A: Random)|     xx         |      xx       |       x       |
+| GCN (V: Img Feats)      |     **0.54**    |      0.82      |   **0.57**     |
+| GCN (V: Both)           |     0.53        |     **0.89**   |       0.56     |
 
 
 ## Interpretability
 
-We produced our feature importance with x and tree visualizations with y.
+We produced our feature importance charts with [random-forest-importances](https://github.com/parrt/random-forest-importances) and tree visualizations with [dtreeviz](https://github.com/parrt/dtreeviz).
 
 
 ## Contributing
-
-> 📋Pick a license and describe how to contribute to your code repository. 
+MIT License
