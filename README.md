@@ -1,9 +1,9 @@
-# live_mapillary
-Repo for Predicting Livelihood Indicators from Community-Generated Street-Level Imagery in India (NeurIPS 2020).  
+# mapillarygcn
+Repo for Predicting Livelihood Indicators from Community-Generated Street-Level Imagery (AAAI 2021).  
 
-# Predicting Livelihood Indicators from Community-Generated Street-Level Imagery in India
+# Predicting Livelihood Indicators from Community-Generated Street-Level Imagery
 
-This repository is the official implementation of [Predicting Livelihood Indicators from Community-Generated Street-Level Imagery in India](link to preprint coming soon). 
+This repository is the official implementation of [Predicting Livelihood Indicators from Community-Generated Street-Level Imagery](https://arxiv.org/abs/2006.08661). 
 
 ![Methods Graphic](https://drive.google.com/uc?export=view&id=16yNKOv9N830IJAz9hnQa92RIp83MXsbm)
 
@@ -18,6 +18,7 @@ pip install -r requirements.txt
 First, download [data.csv](https://drive.google.com/file/d/1HgzZA55fQwUmSpmMJHXJwKsoUHZ4Zzaw/view?usp=sharing) (1.46 GB). 
 There is a row for every image, where:
 - `key`: refers to the unique ID of an image
+- `country`: 'ia' for India, 'ke' for Kenya
 - `unique_cluster`: is the unique ID of the cluster to which the image belongs (i.e. images in the same cluster will have the same `unique_cluster` value)
 - `ilon`, `ilat`: represent the longitude, latitude of the image, respectively 
 - `lon`, `lat`: represent the longitude, latitude of the cluster
@@ -26,7 +27,7 @@ There is a row for every image, where:
 - `confidence`: confidence values of the detections 
 -  `pov`, `pov_label`: represent the poverty indicator value and the binary class label (0 for less than median, 1 for greater than or equal to median), respectively 
 - `pop`, `pop_label`: represent the population density indicator value and the binary class label, respectively
-- `bmi`, `bmi_label`: represent the women's body-mass-index (BMI) indicator value and the binary class label, respectively
+- `bmi`, `bmi_label`: represent the women's body-mass-index (BMI) indicator value and the binary class label, respectively (Note: As detailed in paper, BMI data is only available for India, so these values are 0 for all Kenya rows.)
 
 **Images**
 Each Mapillary image is identifiable using its `key` and `unique_cluster`. 
@@ -43,7 +44,8 @@ We fed the high-res images directly into the [Seamless Scene Segmentation model]
 To get image features, we resized the images to 224x224 and then trained CNNs on the classification task (ResNet34 with pretrained ImageNet weights; trained for 10 epochs with batch size 256 and lr 1e-3). To download the image features for use in the GCN, download [pretrained_image_features.zip](https://drive.google.com/file/d/1tYcegp9zYwFkV5Xgtgfq1-ytOGMTDt-Z/view?usp=sharing) (zip file 2.44 GB).
 
 **Clusters**
-The clusters we used for training and validation are specified by `train_clusters_ia.txt` and `val_clusters_ia.txt`, respectively.
+For India, the clusters we used for training and validation are specified by `train_clusters_ia.txt` and `val_clusters_ia.txt`, respectively.
+For Kenya, `train_clusters_ke.txt` and `val_clusters_ke.txt`.
 
 ## Training
 
@@ -90,11 +92,16 @@ python baseline_nearestneighbor.py --baseline=random --label=pov_label
 
 ## Pre-trained Models
 
-You can download the model weights for classifying and regressing on each indicator below. Each were trained on the images of the clusters in the training set using a ResNet34 model with learning rate 1e-3 for 10 epochs.
+You can download the model weights for classifying and regressing on each indicator in each country. Each were trained on the images of the clusters in the training set using a ResNet34 model with learning rate 1e-3 for 10 epochs.
 
+India
 - Poverty: [Classification Model](https://drive.google.com/file/d/11ftmp0hHsnZHpRDkqAEdaMWC-WhDn-LM/view?usp=sharing), [Regression Model](https://drive.google.com/file/d/1c9Lyxhp3QZZsdd2GlcSDFNFv82TCLH0f/view?usp=sharing) 
 - Population Density: [Classification Model](https://drive.google.com/file/d/1uDP1SC_mO2Sl7rSEUYchcoKTaSHQrBTz/view?usp=sharing), [Regression Model](https://drive.google.com/file/d/1lGH5GvxvDtsyHVO5vZaR8iESHzczqPC8/view?usp=sharing) 
 - Women's BMI: [Classification Model](https://drive.google.com/file/d/1XR5wpy-OV3LbAdh74LXnqvGhJVcR-ev9/view?usp=sharing), [Regression Model](https://drive.google.com/file/d/1hlQrSA40uGdPoj7ddMbszNdy4CVaX1VB/view?usp=sharing) 
+
+Kenya
+- Poverty: [Classification Model](https://drive.google.com/file/d/11zTqcdM2ockIx3SDmyeT2Jli8ELTI5R7/view?usp=sharing), [Regression Model](https://drive.google.com/file/d/14ry6vMsNsyYX7nfGRRWqX2niPu_oYPuV/view?usp=sharing) 
+- Population Density: [Classification Model](https://drive.google.com/file/d/1xF1-FwpVGpb5z9dGXxxTefHRAfdt9nky/view?usp=sharing), [Regression Model](https://drive.google.com/file/d/1LBxGswHnJOt-1slWbGtC54tOhaxNzswJ/view?usp=sharing) 
 
 ## GCN Train + Evaluation
 
@@ -105,32 +112,72 @@ python run_gcn.py --target pov_label --img_csv ./data.csv --train_val_dir . --pr
 python run_gcn.py --target pov --img_csv ./data.csv --train_val_dir . --pretrained_image_file pov_regress --A_type inv --V_type both --lr 1e-6 --batch_size 256 --num_iter 3000
 ```
 
+## Pooled Models
+
+For the pooled Random Forest and GCN models, we randomly sample 50% or 100% of the training clusters from each country and then evaluate on the validation clusters.
+
 ## Results
 
 Our model achieves the following performance on :
 
 ### Livelihood Indicator Classification
 
-| Model name              | Pov Accuracy    | Pop Accuracy   | BMI Accuracy   |
-| ----------------------- |---------------- | -------------- | -------------- |
-| Baseline (Random)       |     50.70%      |      50.11%    |       51.47%   |
-| Baseline (Avg Neighbors)|     63.57%      |      69.06%    |       66.17%   |
-| Image-wise Learning     |     74.34%      |      93.50%    |       85.28%   |
-| Cluster-wise Learning   |     75.77%      |      91.71%    |       83.63%   |
-| GCN (V: Obj Counts)     |     72.05%      |      86.63%    |       80.13%   |
-| GCN (V: Img Feats)      |     **81.06%**  |    **94.71%**  |       89.42%   |
-| GCN (V: Both)           |     80.91%      |      94.42%    |   **89.56%**   |
+India
+| Model name               | Pov Accuracy    | Pop Accuracy   | BMI Accuracy   |
+| -----------------------  |---------------- | -------------- | -------------- |
+| Baseline (Random)        |     50.70%      |      50.11%    |       51.47%   |
+| Baseline (Avg Neighbors) |     63.57%      |      69.06%    |       66.17%   |
+| Image-wise Learning      |     74.34%      |      93.50%    |       85.28%   |
+| Cluster-wise Learning    |     75.77%      |      91.71%    |       83.63%   |
+| GCN (V: Obj Counts)      |     72.05%      |      86.63%    |       80.13%   |
+| GCN (V: Img Feats)       |     81.06%      |    **94.71%**  |       89.42%   |
+| GCN (V: Both)            |     80.91%      |      94.42%    |   **89.56%**   |
+| Random Forest 50% Pooled |     74.20%      |      86.49%    |   N/A  |
+| GCN 50% Pooled           |     80.99%      |      94.07%    |   N/A  |
+| Random Forest 100% Pooled|     74.98%      |      89.78%    |   N/A  |
+| GCN 100% Pooled          |     **81.34%**  |      94.50%    |   N/A  |
+
+Kenya
+| Model name               | Pov Accuracy    | Pop Accuracy   | 
+| -----------------------  |---------------- | -------------- | 
+| Image-wise Learning      |     73.71%      |      87.79%    | 
+| Cluster-wise Learning    |     **77.34%**  |      89.59%    | 
+| GCN (V: Obj Counts)      |     71.36%      |      88.26%    | 
+| GCN (V: Img Feats)       |     76.06%      |      89.67%    | 
+| GCN (V: Both)            |     75.59%      |      89.67%    |
+| Random Forest 50% Pooled |     74.18%      |      81.69%    |
+| GCN 50% Pooled           |     76.53%      |      89.20%    |
+| Random Forest 100% Pooled|     74.18%      |      86.85%    |
+| GCN 100% Pooled          |     77.055      |      90.14%    |
 
 ### Livelihood Indicator Regression
 
-| Model name              | Pov r^2        | Pop r^2         | BMI r^2        |
-| ----------------------- |---------------- | -------------- | -------------- |
-| Baseline (Avg Neighbors)|     0.16        |      0.66      |       0.25     |
-| Image-wise Learning     |     0.51        |      0.85      |       0.52     |
-| Cluster-wise Learning   |     0.52        |      0.81      |       0.54     |
-| GCN (V: Obj Counts)     |     0.39        |      0.86      |       0.38     |
-| GCN (V: Img Feats)      |     **0.54**    |      0.82      |   **0.57**     |
-| GCN (V: Both)           |     0.53        |     **0.89**   |       0.56     |
+India
+| Model name               | Pov r^2         | Pop r^2        | BMI r^2        |
+| -----------------------  |---------------- | -------------- | -------------- |
+| Baseline (Avg Neighbors) |     0.16        |      0.66      |       0.25     |
+| Image-wise Learning      |     0.51        |      0.85      |       0.52     |
+| Cluster-wise Learning    |     0.52        |      0.81      |       0.54     |
+| GCN (V: Obj Counts)      |     0.39        |      0.86      |       0.38     |
+| GCN (V: Img Feats)       |     **0.54**    |      0.82      |   **0.57**     |
+| GCN (V: Both)            |     0.53        |     **0.89**   |       0.56     |
+| Random Forest 50% Pooled |     0.45        |      0.67      |
+| GCN 50% Pooled           |     0.52        |      0.81      |
+| Random Forest 100% Pooled|     0.52        |      0.76      |
+| GCN 100% Pooled          |     0.51        |      0.88      |
+
+Kenya
+| Model name               | Pov r^2         | Pop r^2         |
+| -----------------------  |---------------- | -------------- |
+| Image-wise Learning      |     0.39        |      **0.90**  |
+| Cluster-wise Learning    |     **0.50**    |      0.81      |
+| GCN (V: Obj Counts)      |     0.35        |      0.80      |
+| GCN (V: Img Feats)       |     0.42        |      0.84      |
+| GCN (V: Both)            |     0.40        |      0.85      |
+| Random Forest 50% Pooled |     0.41        |      0.51      |
+| GCN 50% Pooled           |     0.38        |      0.79      |
+| Random Forest 100% Pooled|     0.47        |      0.58      |
+| GCN 100% Pooled          |     0.36        |      0.72      |
 
 
 ## Interpretability
