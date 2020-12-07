@@ -53,6 +53,7 @@ For Kenya, `train_clusters_ke.txt` and `val_clusters_ke.txt`.
 Once you have resized the images and specified their location in a column called `img_path_224x224` in `data.csv`, you can train a ResNet34 model to perform classification or regression. Here are the commands:
 
 ```train
+cd models
 python train_imagewise_classifier.py --model=resnet34 --label=pov_label --lr=1e-3 --batch_size=256 --pretrained
 python imagewise_regressor.py --model=resnet34 --label=pov --lr=1e-4 --batch_size=256 --pretrained
 ```
@@ -61,6 +62,7 @@ Note: We use `train_imagewise_classifier.py` to generate the pretrained image fe
 **Cluster-wise Learning**
 To train the cluster-wise learning model from the paper, run this command:
 ```train
+cd models
 python clusterwise_classifier.py --label=pov_label --log_file=pov_label_results.log
 python clusterwise_regressor.py --label=pov --log_file=pov_results.log
 ```
@@ -70,12 +72,14 @@ python clusterwise_regressor.py --label=pov --log_file=pov_results.log
 To evaluate the image-wise learning model:
 
 ```eval
+cd models
 python eval_imagewise_classifier.py --model_weights=models/pov_classify --label=pov_label
 python imagewise_regressor.py --save_name=models/reg_pov --label=pov --eval_mode 
 ```
 
 To evaluate the cluster-wise learning model:
 ```eval
+cd models
 python clusterwise_classifier.py --label=pov_label --log_file=pov_label_results.log \
     --train_saved_feats=features/trainpov_label_feats.npy --train_saved_labels=features/trainpov_label_labels.npy \
     --val_saved_feats=features/valpov_label_feats.npy --val_saved_labels=features/valpov_label_labels.npy
@@ -87,6 +91,7 @@ python clusterwise_regressor.py --label=pov --log_file=pov_results.log \
 
 To run the baselines (which required no training):
 ```baseline
+cd models
 python baseline_nearestneighbor.py --baseline=random --label=pov_label
 ```
 
@@ -108,6 +113,7 @@ Kenya
 After downloading the pre-trained model weights, you can train the cluster-wise GCN learning model from the paper by looking at the example commands below. You can specify flags for how you want to represent the nodes (V) or edges (A). You can set V to 'feats' to only represent images by their pretrained features, 'obj' for their object counts, and 'both' for the combination of the two. You can also set A to 'inv' for edges that represent the normalized inverse distance between images in a cluster or 'none' for random edges.
 
 ```train
+cd models
 python run_gcn.py --target pov_label --img_csv ./data.csv --train_val_dir . --pretrained_image_file pov_classify --A_type inv --V_type both --lr 1e-6 --batch_size 256 --num_iter 3000
 python run_gcn.py --target pov --img_csv ./data.csv --train_val_dir . --pretrained_image_file pov_regress --A_type inv --V_type both --lr 1e-6 --batch_size 256 --num_iter 3000
 ```
