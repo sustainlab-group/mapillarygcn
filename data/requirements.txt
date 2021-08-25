@@ -40,7 +40,7 @@ scipy==1.4.1
 six==1.14.0
 sklearn==0.0
 tensorboard==2.2.1
-tensorflow==2.2.0
+tensorflow==2.5.1
 tensorflow_gpu==2.1.0
 tensorboard-plugin-wit==1.6.0.post3
 torch==1.4.0
